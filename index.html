@@ -102,7 +102,7 @@ function curDot() { const hm = new Date().toTimeString().slice(0, 5); let id = 1
 const spOf = ma => ME.sp.find(p => p.ma === ma);
 
 /* ===== CẤU HÌNH: dán URL Web app của Apps Script (kết thúc bằng /exec) ===== */
-const API_URL = 'https://script.google.com/macros/s/AKfycbwPWrXSZ_aj2vbxT1rgahKx2qWU3eAhFoKdKL5QWNtYhT7ZsAJhwJDPJaECKXtQO5-axA/exec';
+const API_URL = 'DÁN_URL_EXEC_VÀO_ĐÂY';
 async function api(fn, ...args) {
   gid('loading').classList.remove('hide');
   try {
@@ -616,7 +616,15 @@ async function camScan(onCode, boxId) {
   // Dùng Html5QrcodeScanner (có sẵn nút "Request Camera Permissions") giống mẫu đã chạy được trên Apps Script
   gid(boxId).innerHTML = '<div id="camView"></div><button class="btn full" style="margin:6px 0" onclick="stopCam()">⏹ Đóng khung quét</button>';
   const b = gid('btnCam'); if (b) b.classList.add('hide');
-  QR = new Html5QrcodeScanner('camView', { fps: 10, qrbox: { width: 220, height: 220 }, rememberLastUsedCamera: true }, false);
+  QR = new Html5QrcodeScanner('camView', {
+    fps: 15,
+    qrbox: (w, h) => { const bw = Math.floor(Math.min(w, 360) * 0.9); return { width: bw, height: Math.floor(bw * 0.6) }; }, // khung chữ nhật để đọc cả mã vạch
+    rememberLastUsedCamera: true,
+    formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE, Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E, Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39, Html5QrcodeSupportedFormats.ITF],
+    experimentalFeatures: { useBarCodeDetectorIfSupported: true }
+  }, false);
   QR.render(txt => {
     if (txt === lastCode && Date.now() - lastT < 1500) return;
     lastCode = txt; lastT = Date.now(); onCode(txt);
