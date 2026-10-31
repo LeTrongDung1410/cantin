@@ -102,7 +102,7 @@ function curDot() { const hm = new Date().toTimeString().slice(0, 5); let id = 1
 const spOf = ma => ME.sp.find(p => p.ma === ma);
 
 /* ===== CẤU HÌNH: dán URL Web app của Apps Script (kết thúc bằng /exec) ===== */
-const API_URL = 'DÁN_URL_EXEC_VÀO_ĐÂY';
+const API_URL = 'https://script.google.com/macros/s/AKfycbzMIHVuBj3h_zBWg3Gdkiw2rgyO5IJwHPIqeTMYopqHvh1eoiJu1WEhadHonyz1qHie1g/exec';
 async function api(fn, ...args) {
   gid('loading').classList.remove('hide');
   try {
