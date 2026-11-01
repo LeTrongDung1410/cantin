@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#ee4d2d">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap&subset=vietnamese" rel="stylesheet">
 <title>Căn tin</title>
 <style>
 :root{--bg:#fff7ed;--tx:#1f2937;--mu:#6b7280;--pri:#ea580c;--grn:#16a34a;--blu:#2563eb;--org:#d97706;--red:#dc2626;--bd:#e5e7eb}
@@ -106,6 +108,39 @@ table.mg td,table.mg th{font-size:17px}table.mg input{margin:0;padding:8px;text-
 .bdel{background:#fff;color:var(--red);border:2px solid #fecaca}
 .rank{font-weight:800;color:var(--pri);width:22px;display:inline-block}
 .sub2{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;font-size:13px;color:var(--mu)}.sub2 b{display:block;font-size:16px;color:var(--tx)}
+
+/* ===== Giao diện kiểu app đặt đồ ăn: cam đỏ, nền xám nhạt, thẻ trắng ===== */
+:root{--bg:#f5f5f5;--tx:#222;--mu:#757575;--pri:#ee4d2d;--grn:#26aa99;--blu:#2f80ed;--org:#ff9800;--red:#d0011b;--bd:#ececec}
+body{font-family:Roboto,"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;font-size:17px;letter-spacing:.1px}
+header{background:linear-gradient(90deg,#ee4d2d,#ff7337);box-shadow:0 2px 6px #ee4d2d44}
+header .ttl{font-weight:700}
+.tile{border-radius:12px;box-shadow:0 1px 3px #0000001a;font-weight:500;font-size:15px;padding:16px 6px}
+.tile .ic{width:60px;height:60px;border-radius:50%;background:#fff1ed;display:flex;align-items:center;justify-content:center;font-size:30px}
+.card,.nvc,.stat div,.mini div{border-radius:10px;box-shadow:0 1px 3px #0000001a}
+.btn{border-radius:8px;font-weight:500}
+.btn.primary{background:linear-gradient(90deg,#ee4d2d,#ff6633);box-shadow:0 2px 4px #ee4d2d55}
+.btn.green{background:var(--grn)}
+.chip{border-width:1px;font-weight:500}
+.chip.on{box-shadow:0 1px 3px #ee4d2d55}
+input,select,textarea{border-radius:8px;border-color:#e0e0e0}
+input:focus,select:focus,textarea:focus{outline:2px solid #ee4d2d55;border-color:var(--pri)}
+.hero{border-radius:14px;background:linear-gradient(120deg,#ee4d2d,#ff8a50);box-shadow:0 4px 12px #ee4d2d55}
+.hero .ic{width:68px;height:68px;border-radius:50%;background:#ffffff33;display:flex;align-items:center;justify-content:center;font-size:36px}
+.sec{color:#222;font-size:16px;text-transform:none;font-weight:700;border-left:4px solid var(--pri);padding-left:8px}
+.grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.pc{position:relative;border-radius:10px;text-align:left;padding:0 0 10px;box-shadow:0 1px 3px #0000001a}
+.pc img,.pc .ph{aspect-ratio:4/3;background:#ffe9d8}
+.pc .n{font-weight:500;font-size:15px;padding:8px 10px 0;min-height:42px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pc .p{padding:2px 10px 0;font-size:18px;font-weight:700;color:var(--pri)}
+.pc .t{padding:0 10px}
+.pc .plus{position:absolute;right:8px;bottom:8px;width:32px;height:32px;border-radius:50%;background:var(--pri);color:#fff;font-size:24px;line-height:30px;text-align:center;font-weight:500;box-shadow:0 2px 4px #ee4d2d66}
+.pc:active .plus{transform:scale(.9)}
+.cart{border-radius:16px 16px 0 0;box-shadow:0 -2px 12px #0003}
+.cart .total b{color:var(--pri);font-size:24px}
+.qty{background:#fff1ed;color:var(--pri)}
+.tag.me{background:#fff1ed;color:var(--pri)}
+.mini b,.kv.big b{color:var(--pri)}
+#toast{border-radius:8px}
 @media print{header,.btn,.noprint{display:none!important}body{background:#fff}.qrgrid{grid-template-columns:repeat(4,1fr)}}
 </style>
 </head>
@@ -515,7 +550,7 @@ function imgOf(p) { return p.anh ? `<img src="${esc(p.anh)}" loading="lazy" refe
 function renderGrid(q) {
   const k = noDau(q);
   gid('spGrid').innerHTML = ME.sp.filter(p => p.dangBan && (!k || noDau(p.ten).includes(k))).map(p => `<button class="pc" onclick="addCart('${p.ma}')">${imgOf(p)}
-    <div class="n">${esc(p.ten)}</div><div class="p">${money(p.giaBan)}</div><div class="t ${p.ton <= 0 ? 'neg' : ''}">Tồn: ${p.ton}</div></button>`).join('')
+    <div class="n">${esc(p.ten)}</div><div class="p">${money(p.giaBan)}</div><div class="t ${p.ton <= 0 ? 'neg' : ''}">Tồn: ${p.ton}</div><span class="plus">+</span></button>`).join('')
     || '<div class="muted">Không có món nào</div>';
 }
 function scanCode(code) {
