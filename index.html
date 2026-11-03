@@ -142,6 +142,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid #ee4d2d55;border-color
 .mini b,.kv.big b{color:var(--pri)}
 #toast{border-radius:8px}
 @media print{header,.btn,.noprint{display:none!important}body{background:#fff}.qrgrid{grid-template-columns:repeat(4,1fr)}}
+table.xnt{font-size:12px;white-space:nowrap}table.xnt th,table.xnt td{padding:4px 6px;text-align:right}table.xnt td:first-child,table.xnt th:first-child{text-align:left}@media print{.btn,.chips,input,select,label,header,nav{display:none!important}}
 </style>
 </head>
 <body>
@@ -169,7 +170,7 @@ function curDot() { const hm = new Date().toTimeString().slice(0, 5); let id = 1
 const spOf = ma => ME.sp.find(p => p.ma === ma);
 
 /* ===== CẤU HÌNH: dán URL Web app của Apps Script (kết thúc bằng /exec) ===== */
-const API_URL = 'https://script.google.com/macros/s/AKfycbxtQtSa1E-w6ehkZnbYl6C_2tsVhuEOs_fEY9JgKa7x-kiOHZQQPPK6p0sFlvgqMVHBOw/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbyRV-y0Ul1neVwBrzcvsR3ll5bhT5TSpnsefC5HSXVmJlSxeFkuY44vy1D98QnMnwsv6Q/exec';
 async function api(fn, ...args) {
   gid('loading').classList.remove('hide');
   try {
@@ -260,6 +261,7 @@ const MENU = [
   { nhom: 'Hàng hóa', ds: [
     { id: 'nhap', ic: '&#x1F69A;', ten: 'Nhập hàng' },
     { id: 'sanpham', ic: '&#x1F371;', ten: 'Danh sách món' },
+    { id: 'xnt', ic: '&#x1F4CB;', ten: 'Báo cáo Xuất Nhập Tồn', ql: 1 },
     { id: 'inqr', ic: '&#x1F5A8;️', ten: 'In mã QR món' } ] },
   { nhom: 'Quản lý', ql: 1, ds: [
     { id: 'congno', ic: '&#x1F4D2;', ten: 'Công nợ NCC - KH' },
@@ -272,7 +274,7 @@ const MENU = [
 function go(id) {
   closeModal();
   ({ home: scrHome, ban: scrBan, cat: scrCat, kho: scrKho, nhap: scrNhap, tongket: scrTongKet, chiphi: scrChiPhi,
-     diemdanh: scrDiemDanh, sanpham: scrSanPham, inqr: scrInQR, congno: scrCongNo, baocao: scrBaoCao, nhanvien: scrNhanVien, chinhanh: scrChiNhanh, tonghop: scrTongHop })[id]();
+     diemdanh: scrDiemDanh, sanpham: scrSanPham, inqr: scrInQR, congno: scrCongNo, baocao: scrBaoCao, nhanvien: scrNhanVien, chinhanh: scrChiNhanh, tonghop: scrTongHop, xnt: scrXNT })[id]();
 }
 function scrHome() {
   stopCam();
@@ -285,7 +287,7 @@ function scrHome() {
     <main><button class="hero" onclick="go('ban')"><span class="ic">&#x1F4F7;</span><div><b>BÁN HÀNG</b><small>Quét mã QR món để bán</small></div></button>
     <div class="card">${nhac}</div>
     ${MENU.filter(g => !g.ql || isQL()).map(g => `<div class="sec">${g.nhom}</div>
-      <div class="tiles">${g.ds.filter(m => !m.tq || ME.toanQuyen).map(m => `<button class="tile" onclick="go('${m.id}')"><span class="ic">${m.ic}</span>${m.ten}</button>`).join('')}</div>`).join('')}
+      <div class="tiles">${g.ds.filter(m => (!m.tq || ME.toanQuyen) && (!m.ql || isQL())).map(m => `<button class="tile" onclick="go('${m.id}')"><span class="ic">${m.ic}</span>${m.ten}</button>`).join('')}</div>`).join('')}
     <div style="height:20px"></div></main>`;
 }
 
@@ -829,13 +831,13 @@ function formSP(ma) {
   };
 }
 function resizeImg(file, max) {
-  max = max || 600;
+  max = max || 300;
   return new Promise((res, rej) => {
     const fr = new FileReader();
     fr.onload = () => { const img = new Image(); img.onload = () => {
       const k = Math.min(1, max / Math.max(img.width, img.height)), c = document.createElement('canvas');
       c.width = img.width * k; c.height = img.height * k; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-      res(c.toDataURL('image/jpeg', 0.8)); }; img.onerror = rej; img.src = fr.result; };
+      res(c.toDataURL('image/jpeg', 0.7)); }; img.onerror = rej; img.src = fr.result; };
     fr.onerror = rej; fr.readAsDataURL(file);
   });
 }
@@ -1117,6 +1119,50 @@ function renderTH(r) {
 }
 
 showLogin();
+
+/* ===== Báo cáo Xuất Nhập Tồn ===== */
+let XN = null, XN_PAGE = 0;
+function scrXNT() {
+  const d = todayStr();
+  layout('&#x1F4CB; Xuất Nhập Tồn', `<div class="row"><div class="grow"><label>Từ ngày</label><input type="date" id="xnTu" value="${d.slice(0, 8)}01"></div>
+    <div class="grow"><label>Đến ngày</label><input type="date" id="xnDen" value="${d}"></div></div>
+    <div class="row"><div class="grow"><label>Loại hàng</label><select id="xnLoai"><option value="">Tất cả</option><option>Bán sẵn</option><option>Chế biến</option></select></div>
+    <div class="grow"><label>Tìm món</label><input id="xnQ" placeholder="Tên hoặc mã"></div></div>
+    <div class="row"><button class="btn primary grow" onclick="xemXNT()">Xem báo cáo</button><button class="btn" onclick="xuatXNT()">&#x2B07; Excel</button><button class="btn" onclick="window.print()">&#x1F5A8; In</button></div>
+    <div id="xnBody"></div>`);
+  ['xnLoai', 'xnQ'].forEach(i => gid(i).oninput = () => { XN_PAGE = 0; renderXNT(); });
+  xemXNT();
+}
+async function xemXNT() { XN_PAGE = 0; XN = await api('xnt', val('xnTu'), val('xnDen')); renderXNT(); }
+function xnRows() {
+  const k = noDau(val('xnQ')), l = val('xnLoai');
+  return XN.rows.filter(r => (!l || r.loai === l) && (!k || noDau(r.ten + ' ' + r.ma).includes(k)));
+}
+function renderXNT() {
+  if (!XN) return;
+  const rs = xnRows(), PS = 30, pages = Math.max(1, Math.ceil(rs.length / PS)); XN_PAGE = Math.min(XN_PAGE, pages - 1);
+  const T = f => rs.reduce((a, r) => a + r[f], 0), q = n => Math.round(n * 100) / 100;
+  const th = '<th>Đầu kỳ</th><th>Nhập</th><th>Xuất</th><th>Cuối kỳ</th>';
+  gid('xnBody').innerHTML = `<div class="stat"><div><span>Tồn đầu</span><b>${money(T('gtDau'))}</b></div><div><span>Nhập</span><b>${money(T('gtNhap'))}</b></div>
+    <div><span>Xuất</span><b>${money(T('gtXuat'))}</b></div><div><span>Tồn cuối</span><b>${money(T('gtCuoi'))}</b></div></div>
+    <div style="overflow-x:auto"><table class="xnt"><tr><th rowspan="2">Món</th><th colspan="4">Số lượng</th><th colspan="4">Giá trị (theo giá vốn)</th></tr><tr>${th}${th}</tr>
+    ${rs.slice(XN_PAGE * PS, XN_PAGE * PS + PS).map(r => `<tr><td><div class="row" style="flex-wrap:nowrap;gap:8px">${r.anh ? `<img src="${esc(r.anh)}" style="width:36px;height:36px;object-fit:cover;border-radius:6px">` : ''}<div><b>${esc(r.ten)}</b><div class="muted">${esc(r.ma)} • ${esc(r.dvt || '')}</div></div></div></td>
+      <td>${q(r.dau)}</td><td>${q(r.nhap)}</td><td>${q(r.xuat)}</td><td><b class="${r.cuoi < 0 ? 'neg' : ''}">${q(r.cuoi)}</b></td>
+      <td>${money(r.gtDau)}</td><td>${money(r.gtNhap)}</td><td>${money(r.gtXuat)}</td><td><b>${money(r.gtCuoi)}</b></td></tr>`).join('')}
+    <tr><td><b>Tổng (${rs.length} món)</b></td><td>${q(T('dau'))}</td><td>${q(T('nhap'))}</td><td>${q(T('xuat'))}</td><td>${q(T('cuoi'))}</td>
+      <td>${money(T('gtDau'))}</td><td>${money(T('gtNhap'))}</td><td>${money(T('gtXuat'))}</td><td>${money(T('gtCuoi'))}</td></tr></table></div>
+    <div class="row" style="justify-content:center;margin:8px 0"><button class="btn sm" ${XN_PAGE ? '' : 'disabled'} onclick="XN_PAGE--;renderXNT()">&#x2039;</button><span class="muted">Trang ${XN_PAGE + 1}/${pages}</span><button class="btn sm" ${XN_PAGE < pages - 1 ? '' : 'disabled'} onclick="XN_PAGE++;renderXNT()">&#x203A;</button></div>
+    <p class="muted">Xuất = bán + nhân viên ăn/lưu mẫu + hủy. Hàng chế biến tính theo phần nên không có số nhập. Tồn tính ngược từ tồn hiện tại.</p>`;
+}
+function xuatXNT() {
+  if (!XN) return;
+  const c = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const L = [['Mã', 'Tên', 'Loại', 'ĐVT', 'Giá vốn', 'Tồn đầu', 'Nhập', 'Xuất', 'Tồn cuối', 'GT đầu', 'GT nhập', 'GT xuất', 'GT cuối']];
+  xnRows().forEach(r => L.push([r.ma, r.ten, r.loai, r.dvt, r.giaVon, r.dau, r.nhap, r.xuat, r.cuoi, r.gtDau, r.gtNhap, r.gtXuat, r.gtCuoi]));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + L.map(r => r.map(c).join(',')).join('\r\n')], { type: 'text/csv;charset=utf-8' }));
+  a.download = `XuatNhapTon_${XN.tu}_${XN.den}.csv`; a.click();
+}
 </script>
 </body>
 </html>
